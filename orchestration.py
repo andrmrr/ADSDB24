@@ -20,5 +20,6 @@ if __name__ == "__main__":
     for table in tables:
         print(table[0])
     con.close()
+
     """Load to trusted"""
 

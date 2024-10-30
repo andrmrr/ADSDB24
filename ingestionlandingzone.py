@@ -20,7 +20,7 @@ def ingest_to_temporal():
 def load_to_persistent():
   """Load to peristent landing"""
   dir_list = os.listdir(temporal_landing)
-  curr_date = datetime.datetime.now().strftime("%Y_%m_%d")
+  curr_date = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
   for f in dir_list:
     fname, fext = f.split(".")[:-1], f.split(".")[-1]
     fname = ".".join(fname)
