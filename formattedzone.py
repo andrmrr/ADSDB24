@@ -80,29 +80,3 @@ def load_to_formatted():
     persistent_dataset_dirs = [os.path.join(persistent_landing, d) for d in persistent_dataset_dirs]
     for ds_dir in persistent_dataset_dirs:
        add_new_dataset(ds_dir)
-
-
-# con = duckdb.connect(duckdb_formatted)
-
-# insert_datasets(con)
-
-# # Automatically checking for new datasets in persistent landing zone
-# while True:
-#   add_new_dataset(alzheimer_folder)
-#   add_new_dataset(chronic_folder)
-#   # Check once every day
-#   time.sleep(86400)
-
-# """Check tables that are currently in the database"""
-
-# con = duckdb.connect(duckdb_formatted)
-
-# tables = con.execute("SHOW TABLES").fetchall()
-
-# # Print the tables
-# print("Tables in the database:")
-# for table in tables:
-#     print(table[0])
-
-# # Close the connection
-# con.close()

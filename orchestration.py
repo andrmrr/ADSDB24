@@ -11,7 +11,7 @@ from trustedzone import *
 if __name__ == "__main__":
     """ingest data into temporal landing"""
     # ingest_to_temporal()
-    # load_to_persistent()
+    load_to_persistent()
 
     """load into database in formatted zone"""
     load_to_formatted()
@@ -30,5 +30,5 @@ if __name__ == "__main__":
     tables = con.execute("SHOW TABLES").fetchall()
     print("Tables in the trusted database:")
     for table in tables:
-        print(table)
+        print(table[0])
     con.close()

@@ -13,7 +13,7 @@ import datetime
 import os
 import json
 
-from spellchecker import SpellChecker
+# from spellchecker import SpellChecker
 
 from util import *
 from dataprofiling import profiling
@@ -21,7 +21,7 @@ from dataprofiling import profiling
 
 def alz_preprocess(alz):
     # profiling(alz, True)
-    alz_metadata_path = os.path.join(base_dir, "metadata", "alzheimer_metadata.json")
+    alz_metadata_path = os.path.join(base_dir, metadata_folder, alz_metadata_fname)
     #drop the first column
     alz_modified = alz.drop("Unnamed: 0", axis=1)
 
@@ -88,7 +88,9 @@ def alz_preprocess(alz):
         print(alz_metadata)
 
     ts = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    alz_metadata_full_path = os.path.join(alz_metadata_path.split(".")[0] + ts + "." + alz_metadata_path.split(".")[1])
+    alz_metadata_path, alz_metadata_ext = alz_metadata_path.split(".")[:-1], alz_metadata_path.split(".")[-1]
+    alz_metadata_path = ".".join(alz_metadata_path)
+    alz_metadata_full_path = os.path.join(alz_metadata_path + ts + "." + alz_metadata_ext)
     with open(alz_metadata_full_path, "w") as f:
         json.dump(alz_metadata, f, cls=NpEncoder)
 

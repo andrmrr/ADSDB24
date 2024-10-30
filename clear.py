@@ -10,3 +10,5 @@ if __name__ == "__main__":
         shutil.rmtree(persistent_landing)
     if os.path.isdir(duckdb_folder):
         shutil.rmtree(duckdb_folder)
+    if os.path.exists(os.path.join(base_dir, metadata_folder, formatted_metadata)):
+        os.remove(os.path.join(base_dir, metadata_folder, formatted_metadata))

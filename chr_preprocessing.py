@@ -10,14 +10,14 @@ import datetime
 import os
 import json
 
-from spellchecker import SpellChecker
+# from spellchecker import SpellChecker
 
 from dataprofiling import profiling
 from util import *
 
 def chr_preprocess(chr):
     # profiling(chr, True)
-    chr_metadata_path = os.path.join(base_dir, metadata_folder, chr_metadata)
+    chr_metadata_path = os.path.join(base_dir, metadata_folder, chr_metadata_fname)
     #drop the first column
     chr_modified = chr.drop("Unnamed: 0", axis=1)
 
@@ -75,7 +75,7 @@ def chr_preprocess(chr):
 
     # check if Data_Value and Data_Value_Alt are identical, and if so remove Data_Value_Alt
     if (chr_modified["DataValue"] == chr_modified["DataValueAlt"]).all():
-        chr_modified.drop("DataValue_Alt", axis=1, inplace=True)
+        chr_modified.drop("DataValueAlt", axis=1, inplace=True)
 
     for col in chr_modified.columns:
         has_null = chr_modified[col].isnull().any()
@@ -93,7 +93,9 @@ def chr_preprocess(chr):
     print(chr_metadata)
 
     ts = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    chr_metadata_full_path = os.path.join(chr_metadata_path.split(".")[0] + ts + "." + chr_metadata_path.split(".")[1])
+    chr_metadata_path, chr_metadata_ext = chr_metadata_path.split(".")[:-1], chr_metadata_path.split(".")[-1]
+    chr_metadata_path = ".".join(chr_metadata_path)
+    chr_metadata_full_path = os.path.join(chr_metadata_path + ts + "." + chr_metadata_ext)
     with open(chr_metadata_full_path, "w") as f:
         json.dump(chr_metadata, f, cls=NpEncoder)
 

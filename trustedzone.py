@@ -21,22 +21,23 @@ def integrate_new_tables(con_for, ds):
     with open(os.path.join(base_dir, metadata_folder, formatted_metadata), "r") as f:
       fmetadata = json.load(f)
       all_new_tables = fmetadata["new_tables"]
-      new_tables = [table for table in all_new_tables if table.startswith(dataset1_abbrev(os.path.basename(ds)))]
+      new_tables = [table for table in all_new_tables if table.startswith(dataset_abbrev[os.path.basename(ds)])]
       all_new_tables = [table for table in all_new_tables if table not in new_tables]
 
   if len(new_tables) == 0:
      return None
   # no integration needed, just update the metadata
   elif len(new_tables) == 1:
-     with open(os.path.join(base_dir, metadata_folder, formatted_metadata), "w") as f:
+    with open(os.path.join(base_dir, metadata_folder, formatted_metadata), "w") as f:
       json.dump({"new_tables": all_new_tables}, f)
-     return con_for.execute("SELECT * FROM ?", [new_tables[0]]).fetchdf()
+      tb = new_tables[0]
+      return con_for.execute(f"SELECT * FROM {new_tables[0]}").fetchdf()
   
   # if actual integration is needed, i.e. there are multiple new tables
-  df = con_for.execute("SELECT * FROM ?", [new_tables[0]]).fetchdf()
+  df = con_for.execute(f"SELECT * FROM {new_tables[0]}").fetchdf()
   main_schema = set(df.columns)
   for i in range(1, len(new_tables)):
-    df2 = con_for.execute("SELECT * FROM ?", [new_tables[i]]).fetchdf()
+    df2 = con_for.execute(f"SELECT * FROM {new_tables[1]}").fetchdf()
     schema2 = set(df2.columns)
 
     #check if the schemas match and add missing columns
@@ -60,14 +61,18 @@ def integrate_new_tables(con_for, ds):
 """Combine integrated and preprocessed tables to the existing table in the trusted zone"""
 
 def add_new_data(con_tru, ds, df):
+  tables = con_tru.execute("SHOW TABLES").fetchall()
+  tables = [table[0] for table in tables]
   tru_name = dataset_names[os.path.basename(ds)]
-  con_tru.sql(f"CREATE TABLE IF NOT EXISTS ?", [tru_name])
-  con_tru.sql(f"""
-            INSERT INTO ?
-            SELECT * FROM df
-        """, [tru_name])
+  if tru_name not in tables:
+    con_tru.sql(f"CREATE TABLE {tru_name} AS SELECT * FROM df")
+  else:
+    con_tru.sql(f"""
+              INSERT INTO + {tru_name} +
+              SELECT * FROM df
+          """)
   print(f"Data has been added to the {tru_name} table in the trusted zone.")
-  return con_tru.execute("SELECT * FROM ?", [tru_name]).fetchdf()
+  return con_tru.execute(f"SELECT * FROM {tru_name}").fetchdf()
 
 """Preprocess the data"""
 
