@@ -1,4 +1,6 @@
 import os
+import json
+import numpy as np
 
 base_dir = os.path.join(".")
 temporal_landing = os.path.join(base_dir,  "landing_zone", "temporal")
@@ -44,3 +46,15 @@ metadata_folder = "metadata"
 formatted_metadata = "formatted_metadata.json"
 alz_metadata = "alzheimer_metadata.json"
 chr_metadata = "chronic_disease_indicators_metadata.json"
+
+
+# custom JSON encoder used for persisting metadata as a JSON file
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)

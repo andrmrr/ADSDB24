@@ -2,9 +2,10 @@ import os
 import shutil
 import duckdb
 
+from util import *
 from ingestionlandingzone import *
 from formattedzone import *
-from util import *
+
 
 if __name__ == "__main__":
     """ingest data into temporal landing"""
