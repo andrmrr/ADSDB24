@@ -5,6 +5,7 @@ import duckdb
 from util import *
 from ingestionlandingzone import *
 from formattedzone import *
+from trustedzone import *
 
 
 if __name__ == "__main__":
@@ -23,4 +24,11 @@ if __name__ == "__main__":
     con.close()
 
     """Load to trusted"""
-
+    load_to_trusted()
+    """Check tables that are currently in the database"""
+    con = duckdb.connect(duckdb_trusted)
+    tables = con.execute("SHOW TABLES").fetchall()
+    print("Tables in the trusted database:")
+    for table in tables:
+        print(table)
+    con.close()
