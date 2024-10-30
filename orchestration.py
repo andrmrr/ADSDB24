@@ -16,7 +16,7 @@ if __name__ == "__main__":
     """Check tables that are currently in the database"""
     con = duckdb.connect(duckdb_formatted)
     tables = con.execute("SHOW TABLES").fetchall()
-    print("Tables in the database:")
+    print("Tables in the formatted database:")
     for table in tables:
         print(table[0])
     con.close()

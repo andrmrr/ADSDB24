@@ -14,7 +14,7 @@ def ingest_to_temporal():
   else:
     for f in os.listdir(temporal_landing):
       os.remove(os.path.join(temporal_landing, f))
-  for ds in datasources:
+  for ds in datasets:
     shutil.copyfile(ds, os.path.join(temporal_landing, os.path.basename(ds)))
 
 def load_to_persistent():
@@ -24,6 +24,6 @@ def load_to_persistent():
   for f in dir_list:
     fname, fext = f.split(".")[:-1], f.split(".")[-1]
     fname = ".".join(fname)
-    if not os.path.isdir(os.path.join(persistent_landing, datasource_names[f])):
-      os.makedirs(os.path.join(persistent_landing, datasource_names[f]))
-    shutil.copyfile(os.path.join(temporal_landing, f), os.path.join(persistent_landing, datasource_names[f], fname + "_" + str(curr_date) + "." + fext))
+    if not os.path.isdir(os.path.join(persistent_landing, dataset_names[f])):
+      os.makedirs(os.path.join(persistent_landing, dataset_names[f]))
+    shutil.copyfile(os.path.join(temporal_landing, f), os.path.join(persistent_landing, dataset_names[f], fname + "_" + str(curr_date) + "." + fext))
