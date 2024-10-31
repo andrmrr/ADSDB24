@@ -16,26 +16,6 @@ import json
 from util import *
 from dataprofiling import profiling
 
-def alz_reconciliation(table):
-      def mapping(s):
-            if s == 'Asian/Pacific Islander' or s == 'Asian or Pacific Islander':
-                  return 'Asian_or_Pacific_Islander'
-            elif s == 'Native Am/Alaskan Native' or s == 'American Indian or Alaska Native':
-                  return 'American_Indian_or_Alaska_Native'
-            elif s == 'White, non-Hispanic':
-                  return 'White'
-            elif s == 'Black, non-Hispanic':
-                  return 'Black'
-            elif s == 'Asian, non-Hispanic':
-                  return 'Asian_or_Pacific_Islander'
-            else:
-                  return "Other"
-
-      str_col = table['Stratification2'].astype(str)
-      table['Standardized_Race_Strat'] = str_col.map(mapping)
-      return table
-
-
 def alz_preprocess(alz):
     # profiling(alz, True)
     alz_metadata_path = os.path.join(base_dir, metadata_folder, alz_metadata_fname)
@@ -119,9 +99,6 @@ def alz_preprocess(alz):
     We will leave the stratification features in for now.
     """
 
-    """Reconciliation"""
-    alz_modified = alz_reconciliation(alz_modified)
-   
     """Check for duplicates"""
 
     print(alz_modified.shape[0])
