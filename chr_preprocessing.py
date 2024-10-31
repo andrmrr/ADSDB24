@@ -10,10 +10,28 @@ import datetime
 import os
 import json
 
-# from spellchecker import SpellChecker
-
 from dataprofiling import profiling
 from util import *
+
+def chr_reconciliation(table):
+      def mapping(s):
+            if s == 'Asian/Pacific Islander' or s == 'Asian or Pacific Islander':
+                  return 'Asian_or_Pacific_Islander'
+            elif s == 'Native Am/Alaskan Native' or s == 'American Indian or Alaska Native':
+                  return 'American_Indian_or_Alaska_Native'
+            elif s == 'White, non-Hispanic':
+                  return 'White'
+            elif s == 'Black, non-Hispanic':
+                  return 'Black'
+            elif s == 'Asian, non-Hispanic':
+                  return 'Asian_or_Pacific_Islander'
+            else:
+                  return "Other"
+
+      str_col = table['Stratification1'].astype(str)
+      table['Standardized_Race_Strat'] = str_col.map(mapping)
+      return table
+
 
 def chr_preprocess(chr):
     # profiling(chr, True)
@@ -101,6 +119,10 @@ def chr_preprocess(chr):
 
     chr_modified.drop(["LocationAbbr", "LocationDesc", "GeoLocation", "LocationID"], axis=1, inplace=True)
     print(chr_modified.columns)
+
+    """Reconciliation"""
+
+    chr_modified = chr_reconciliation(chr_modified)
 
     """Check for duplicates"""
 

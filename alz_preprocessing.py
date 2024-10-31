@@ -13,10 +13,27 @@ import datetime
 import os
 import json
 
-# from spellchecker import SpellChecker
-
 from util import *
 from dataprofiling import profiling
+
+def alz_reconciliation(table):
+      def mapping(s):
+            if s == 'Asian/Pacific Islander' or s == 'Asian or Pacific Islander':
+                  return 'Asian_or_Pacific_Islander'
+            elif s == 'Native Am/Alaskan Native' or s == 'American Indian or Alaska Native':
+                  return 'American_Indian_or_Alaska_Native'
+            elif s == 'White, non-Hispanic':
+                  return 'White'
+            elif s == 'Black, non-Hispanic':
+                  return 'Black'
+            elif s == 'Asian, non-Hispanic':
+                  return 'Asian_or_Pacific_Islander'
+            else:
+                  return "Other"
+
+      str_col = table['Stratification2'].astype(str)
+      table['Standardized_Race_Strat'] = str_col.map(mapping)
+      return table
 
 
 def alz_preprocess(alz):
@@ -101,6 +118,9 @@ def alz_preprocess(alz):
     Location related features are chosen in advance, so we can take them out and save the static values, which hold true for the entire dataset. Datasource will also be moved to metadata and removed from the dataset.
     We will leave the stratification features in for now.
     """
+
+    """Reconciliation"""
+    alz_modified = alz_reconciliation(alz_modified)
    
     """Check for duplicates"""
 
@@ -125,4 +145,4 @@ def alz_preprocess(alz):
     # #     print(spell.candidates(word))
 
     profiling(alz_modified, False)    
-    return alz
+    return alz_modified
