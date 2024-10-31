@@ -12,25 +12,33 @@ def main():
     window = tk.Tk()
     window.title("GUI")
 
+    # Position GUI in the center of the screen
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width // 2) - (850 // 2)
+    y = (screen_height // 2) - (425 // 2)
     # Configure the main window
-    window.geometry("800x400+400+300")  
-
-    # Create a header label at the top
-    header_label = tk.Label(window, text="ADSDB Project Part 1", font=('Roboto', 16), fg='white')
-    header_label.pack(fill='x', pady = 10) 
+    window.geometry(f'850x425+{x}+{y}')  
 
     ### FRAMES
-    left_frame = tk.Frame(window, width=300, height=600)
+    top_frame = tk.Frame(window, width=200, height=60, bg='black')
+    top_frame.pack()
+
+    left_frame = tk.Frame(window, width=370, height=600)
     left_frame.pack(side="left", expand=True, fill="both")
 
-    right_frame = tk.Frame(window, width=200, height=200, bg='lightblue')
-    right_frame.pack(side="right", expand=True, anchor = "e", padx = 60, pady = 60)
+    right_frame = tk.Frame(window, width=350, height=350, bg='lightblue')
+    right_frame.pack(side="right", expand=True, anchor = "e", padx = 40, pady = 50)
 
     ### LABELS
 
+    # Create a header label at the top
+    header_label = tk.Label(top_frame, text="ADSDB Project Part 1", bg= 'black', font=('Roboto', 16), fg='white')
+    header_label.place(relwidth=1, relheight=1)
+
     # Create a label with initial text color and background
     label = tk.Label(right_frame, text="Label", font=('Roboto', 15),
-                     bg='skyblue', borderwidth=2)
+                     bg='skyblue', borderwidth=2, wraplength=300)
     label.place(relx=0.5, rely=0.5, anchor="center")
 
     ### BUTTONS
