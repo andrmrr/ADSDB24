@@ -16,6 +16,7 @@ def ingest_to_temporal():
       os.remove(os.path.join(temporal_landing, f))
   for ds in datasets:
     shutil.copyfile(ds, os.path.join(temporal_landing, os.path.basename(ds)))
+  return len(datasets)
 
 def load_to_persistent():
   if not os.path.isdir(persistent_landing):
@@ -36,3 +37,5 @@ def load_to_persistent():
   if os.path.isdir(temporal_landing):
     for f in os.listdir(temporal_landing):
       os.remove(os.path.join(temporal_landing, f))
+
+  return len(dir_list)

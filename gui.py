@@ -3,9 +3,11 @@ import subprocess as sb
 import time
 import threading
 
+from orchestration import *
+
 def main():
-    def on_button_click():
-        label.config(text="Button clicked!", fg='green')  
+    def label_text_change(text):
+        label.config(text=text, fg='green')  
 
     window = tk.Tk()
     window.title("GUI")
@@ -37,13 +39,29 @@ def main():
     button_frame = tk.Frame(left_frame)
     button_frame.place(relx=0.45, rely=0.5, anchor="center")
 
-    button_for = tk.Button(button_frame, text="Formatted Zone", command=on_button_click)
+    button_tem = tk.Button(button_frame, text="Temporal Landing Zone", command=lambda : {
+        label_text_change(data_ingester())
+        })
+    button_tem.pack(pady = 10)
+
+    button_per = tk.Button(button_frame, text="Persistent Landing Zone", command=lambda : {
+        label_text_change(persistent_loader())
+        })
+    button_per.pack(pady = 10)
+
+    button_for = tk.Button(button_frame, text="Formatted Zone", command=lambda : {
+        label_text_change(formatted_loader())
+        })
     button_for.pack(pady = 10)
 
-    button_tru = tk.Button(button_frame, text="Trusted Zone", command=on_button_click)
+    button_tru = tk.Button(button_frame, text="Trusted Zone", command=lambda : {
+        label_text_change(trusted_loader())
+        })
     button_tru.pack(pady = 10)
 
-    button_exp = tk.Button(button_frame, text="Exploitation Zone", command=on_button_click)
+    button_exp = tk.Button(button_frame, text="Exploitation Zone", command=lambda : {
+        label_text_change(exploitation_loader())
+        })
     button_exp.pack(pady = 10)
 
     ### MONITORING PERFORMANCE
