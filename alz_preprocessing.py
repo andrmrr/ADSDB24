@@ -94,7 +94,7 @@ def alz_preprocess(alz):
     with open(alz_metadata_full_path, "w") as f:
         json.dump(alz_metadata, f, cls=NpEncoder)
 
-    alz_modified.drop(["LocationAbbr", "LocationDesc", "Datasource", "Geolocation", "LocationID"], axis=1, inplace=True)
+    alz_modified.drop(["LocationAbbr", "LocationDesc", "Geolocation", "LocationID"], axis=1, inplace=True)
     print(alz_modified.columns)
 
     """We get the same value in all rows for the following columns with following values: LocationAbbr - TX, LocationDesc - Texas, Datasource - BRFSS, StratificationCategory1 - Age Group, Geolocation - POINT(-99.42677021 31.82724041), LocationID - 48 and StratificationCategoryID1 - AGE.

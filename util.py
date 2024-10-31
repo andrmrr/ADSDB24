@@ -40,6 +40,7 @@ dataset_abbrev = {
 duckdb_folder = "duckdb_database"
 duckdb_formatted = os.path.join(duckdb_folder, "formatted_zone.db")
 duckdb_trusted = os.path.join(duckdb_folder, "trusted_zone.db")
+duckdb_exploitation = os.path.join(duckdb_folder, "exploitation_zone.db")
 
 """Metadata"""
 metadata_folder = "metadata"

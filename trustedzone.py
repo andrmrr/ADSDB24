@@ -68,7 +68,7 @@ def add_new_data(con_tru, ds, df):
     con_tru.sql(f"CREATE TABLE {tru_name} AS SELECT * FROM df")
   else:
     con_tru.sql(f"""
-              INSERT INTO + {tru_name} +
+              INSERT INTO {tru_name}
               SELECT * FROM df
           """)
   print(f"Data has been added to the {tru_name} table in the trusted zone.")

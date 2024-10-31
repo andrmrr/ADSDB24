@@ -6,6 +6,7 @@ from util import *
 from ingestionlandingzone import *
 from formattedzone import *
 from trustedzone import *
+from exploitationzone import *
 
 
 if __name__ == "__main__":
@@ -32,3 +33,12 @@ if __name__ == "__main__":
     for table in tables:
         print(table[0])
     con.close()
+
+    """Load to exploitation"""
+    load_to_exploitation()
+    """Check tables that are currently in the database"""
+    con = duckdb.connect(duckdb_exploitation)
+    tables = con.execute("SHOW TABLES").fetchall()
+    print("Tables in the exploitation database:")
+    for table in tables:
+        print(table[0])
