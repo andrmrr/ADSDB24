@@ -12,7 +12,7 @@ from util import *
 from alz_preprocessing import *
 from chr_preprocessing import *
 
-"""Keep one table for each data source in the database"""
+"""Integrate incoming tables into one"""
 
 def integrate_new_tables(con_for, ds):
   # get all tables corresponding to each dataset

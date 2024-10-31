@@ -106,20 +106,6 @@ def alz_preprocess(alz):
     print(alz_modified.shape[0])
 
     #I feel that no normalization/scaling is necessary for this dataset
-    
-    
-    ## Not sure how to yet how to handle spelling errors
-    # spell = SpellChecker()
-    # misspelled = spell.unknown(air[air.columns[7]])
-    # print(len(misspelled))
-    # print(misspelled)
-
-    # # for word in misspelled:
-    # #     # Get the one `most likely` answer
-    # #     print(spell.correction(word))
-
-    # #     # Get a list of `likely` options
-    # #     print(spell.candidates(word))
 
     profiling(alz_modified, False)    
     return alz_modified
