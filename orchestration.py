@@ -7,7 +7,9 @@ from ingestionlandingzone import *
 from formattedzone import *
 from trustedzone import *
 from exploitationzone import *
-
+from model_training import *
+from sandbox import *
+from data_preparation import *
 
 def data_ingester():
     n = ingest_to_temporal()
@@ -47,6 +49,16 @@ def exploitation_loader():
     con.close()
     return ret_str
 
+def sandbox():
+    exp_to_sandbox()
+    data_preparation()
+
+
+def model_training_loader():
+    model_training()
+    mse = mse_test
+    r2 = r2_test
+
 if __name__ == "__main__":
     """ingest data into temporal landing"""
     # ingest_to_temporal()
@@ -74,6 +86,22 @@ if __name__ == "__main__":
 
     """Load to exploitation"""
     load_to_exploitation()
+    """Check tables that are currently in the database"""
+    con = duckdb.connect(duckdb_exploitation)
+    tables = con.execute("SHOW TABLES").fetchall()
+    print("Tables in the exploitation database:")
+    for table in tables:
+        print(table[0])
+
+    """Load to analytical sandbox"""
+    exp_to_sandbox()
+    """Check tables that are currently in the database"""
+    con = duckdb.connect(duckdb_sandbox)
+    tables = con.execute("SHOW TABLES").fetchall()
+    print("Tables in the sandbox database:")
+    for table in tables:
+        print(table[0])
+    
     """Check tables that are currently in the database"""
     con = duckdb.connect(duckdb_exploitation)
     tables = con.execute("SHOW TABLES").fetchall()
