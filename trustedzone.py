@@ -10,66 +10,9 @@ import datetime
 import os
 import json
 
-base_dir = "/content/drive/MyDrive/ADSDB24"
-temporal_landing = os.path.join(base_dir,  "landing_zone/temporal")
-persistent_landing = os.path.join(base_dir, "landing_zone/persistent")
-dataset_folder = "datasets_specific"
-
-# # 2017 version
-dataset1_fname = "alz_2017.csv"
-dataset2_fname = "chr_2017.csv"
-# 2021 version
-# dataset1_fname = "alz_2021.csv"
-# dataset2_fname = "chr_2021.csv"
-
-dataset1 = os.path.join(base_dir, dataset_folder, dataset1_fname)
-dataset2 = os.path.join(base_dir, dataset_folder, dataset2_fname)
-dataset1_name = "alzheimer"
-dataset2_name = "chronic_disease_indicators"
-dataset1_abbrev = "alz"
-dataset2_abbrev = "chr"
-
-datasets = [
-    dataset1, dataset2
-]
-
-dataset_names = {
-    dataset1_fname: dataset1_name,
-    dataset2_fname: dataset2_name
-}
-
-dataset_abbrev = {
-    dataset1_fname: dataset1_abbrev,
-    dataset2_fname: dataset2_abbrev
-}
-
-"""DuckDB"""
-duckdb_folder = "duckdb_database"
-duckdb_formatted = os.path.join(duckdb_folder, "formatted_zone.db")
-duckdb_trusted = os.path.join(duckdb_folder, "trusted_zone.db")
-duckdb_exploitation = os.path.join(duckdb_folder, "exploitation_zone.db")
-
-"""Metadata"""
-metadata_folder = "metadata"
-formatted_metadata = "formatted_metadata.json"
-alz_metadata_fname = "alzheimer_metadata.json"
-chr_metadata_fname = "chronic_disease_indicators_metadata.json"
-
-# custom JSON encoder used for persisting metadata as a JSON file
-class NpEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        if isinstance(obj, np.floating):
-            return float(obj)
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return super(NpEncoder, self).default(obj)
-
-con_for = duckdb.connect(os.path.join(base_dir, duckdb_formatted))
-tables = con_for.execute("SHOW TABLES").fetchall()
-for table in tables:
-  print(table[0])
+from util import *
+from alz_preprocessing import *
+from chr_preprocessing import *
 
 """
 Integrate incoming tables into one"""
@@ -164,11 +107,6 @@ def profiling(df, show_plots):
 
 """## Alzheimer"""
 
-# con_for = duckdb.connect(os.path.join(base_dir, duckdb_formatted))
-# alz = integrate_new_tables(con_for, dataset1)
-# print(alz.columns)
-# con_for.close()
-
 def alz_preprocess(alz):
   # profiling(alz, True)
   alz_metadata_path = os.path.join(base_dir, metadata_folder, alz_metadata_fname)
@@ -194,17 +132,11 @@ def alz_preprocess(alz):
       if has_null:
           print(f"{col}: {alz_modified[col].isnull().sum()}")
 
-  print(alz_modified["Data_Value_Footnote_Symbol"].unique())
-  print(alz_modified["Data_Value_Footnote"].unique())
-
   # drop Data_Value_Footnote_Symbol
   alz_modified.drop(["Data_Value_Footnote_Symbol"], axis=1, inplace=True)
 
   # impute string "NONE" for missing values of Data_Value_Footnote
   alz_modified["Data_Value_Footnote"].fillna("NONE", inplace=True)
-
-  print(alz_modified["StratificationCategory2"].unique())
-  print(alz_modified["Stratification2"].unique())
 
   # impute string "NONE" for missing values of StratificationCategory2, Stratification2
   alz_modified["StratificationCategory2"].fillna("NONE", inplace=True)
@@ -217,10 +149,6 @@ def alz_preprocess(alz):
   alz_modified["YearEnd"] = alz_modified["YearEnd"].astype('category')
 
   """Removing redundant features"""
-
-  print(alz_modified["Data_Value_Unit"].unique())
-  print(alz_modified["DataValueTypeID"].unique())
-  print(alz_modified["Data_Value_Type"].unique())
 
   # drop Data_Value_Unit, DataValueTypeID and Data_Value_Type columns
   alz_modified.drop(["Data_Value_Unit", "DataValueTypeID"], axis=1, inplace=True)
@@ -239,8 +167,6 @@ def alz_preprocess(alz):
           alz_metadata[col] = alz_modified[col][0]
           alz_modified = alz_modified.drop([col], axis=1)
 
-      print(alz_metadata)
-
   ts = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
   alz_metadata_path, alz_metadata_ext = alz_metadata_path.split(".")[:-1], alz_metadata_path.split(".")[-1]
   alz_metadata_path = ".".join(alz_metadata_path)
@@ -257,20 +183,6 @@ def alz_preprocess(alz):
   alz_modified["Latitude"] = alz_modified["Latitude"].astype("float64")
   alz_modified = alz_modified.drop(["Geolocation"], axis=1)
 
-  # alz_modified.drop(["LocationAbbr", "LocationDesc", "Geolocation", "LocationID"], axis=1, inplace=True)
-  # print(alz_modified.columns)
-  # """We get the same value in all rows for the following columns with following values: LocationAbbr - TX, LocationDesc - Texas, StratificationCategory1 - Age Group, Geolocation - POINT(-99.42677021 31.82724041), LocationID - 48 and StratificationCategoryID1 - AGE.
-  # Location related features are chosen in advance, so we can take them out and save the static values, which hold true for the entire dataset. Datasource will also be moved to metadata and removed from the dataset.
-  # We will leave the stratification features in for now.
-  # """
-
-  """Check for duplicates"""
-
-  print(alz_modified.shape[0])
-  alz_modified.drop_duplicates(inplace=True)
-  print(alz_modified.shape[0])
-  print(alz_modified.columns)
-
   """No normalization, scaling or spellchecking is necessary for this dataset"""
   # profiling(alz_modified, False)
   return alz_modified
@@ -279,7 +191,6 @@ def alz_preprocess(alz):
 
 con_for = duckdb.connect(os.path.join(base_dir, duckdb_formatted))
 chr = integrate_new_tables(con_for, dataset2)
-print(chr.columns)
 con_for.close()
 
 def chr_preprocess(chr):
@@ -409,25 +320,26 @@ def preprocess(ds, df):
 
 """Main for Trusted Zone"""
 
-con_for = duckdb.connect(os.path.join(base_dir, duckdb_formatted))
-con_tru = duckdb.connect(os.path.join(base_dir, duckdb_trusted))
-for ds in datasets:
-  df = integrate_new_tables(con_for, ds)
-  if df is None:
-    continue
-  df = preprocess(ds, df)
-  if df is None:
-    continue
-  df = add_new_data(con_tru, ds, df)
-  df = df.drop_duplicates()
-con_for.close()
-con_tru.close()
+def load_trusted():
+  con_for = duckdb.connect(os.path.join(base_dir, duckdb_formatted))
+  con_tru = duckdb.connect(os.path.join(base_dir, duckdb_trusted))
+  for ds in datasets:
+    df = integrate_new_tables(con_for, ds)
+    if df is None:
+      continue
+    df = preprocess(ds, df)
+    if df is None:
+      continue
+    df = add_new_data(con_tru, ds, df)
+    df = df.drop_duplicates()
+  con_for.close()
+  con_tru.close()
 
-con_tru = duckdb.connect(os.path.join(base_dir, duckdb_trusted))
-tables = con_tru.execute("SHOW TABLES").fetchall()
-for table in tables:
-  print(table[0])
-con_tru.close()
+  con_tru = duckdb.connect(os.path.join(base_dir, duckdb_trusted))
+  tables = con_tru.execute("SHOW TABLES").fetchall()
+  for table in tables:
+    print(table[0])
+  con_tru.close()
 
 """## For testing"""
 
@@ -437,18 +349,3 @@ for table in tables:
   df = con_tru.execute(f"SELECT * FROM {table[0]}").fetchdf()
   print(df.columns)
 con_tru.close()
-
-# con_tru = duckdb.connect(os.path.join(base_dir, duckdb_trusted))
-# tables = con_tru.execute("SHOW TABLES").fetchall()
-# for table in tables:
-#   print(table[0])
-#   con_tru.execute(f"DROP TABLE IF EXISTS {table[0]}")
-# con_tru.close()
-
-# json_items = ["chr_2017_2024_12_17_22_34_57", "chr_2021_2024_12_17_22_36_03", "alz_2017_2024_12_17_22_34_57", "alz_2021_2024_12_17_22_36_03"]
-# with open(os.path.join(base_dir, metadata_folder, formatted_metadata), "w") as f:
-#       json.dump({"new_tables": json_items}, f)
-
-# with open(os.path.join(base_dir, metadata_folder, formatted_metadata), "r") as f:
-#   fmetadata = json.load(f)
-#   print(fmetadata)

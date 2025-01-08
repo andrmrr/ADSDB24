@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""model_training"""
+""" Model Training """
 
 import pandas as pd
 import numpy as np
@@ -14,73 +14,35 @@ from datetime import timedelta
 import pickle as pkl
 from joblib import dump
 
-# from sklearn.model_selection import train_test_split, KFold, cross_validate,
+# import seaborn as sns
+# from matplotlib import pyplot as plt
+from time import time
+from datetime import timedelta
+import pickle as pkl
+from joblib import dump
+
 from sklearn.model_selection import GridSearchCV
-# from sklearn.metrics import confusion_matrix, accuracy_score, classification_report, f1_score
-# from sklearn.naive_bayes import GaussianNB
-# from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.metrics import make_scorer, mean_squared_error, r2_score
-# from sklearn.neural_network import MLPClassifier
-# from graphviz import Digraph
 
-# from sklearn.metrics import confusion_matrix, \
-                  # classification_report, accuracy_score,  precision_score, recall_score, f1_score
-
-base_dir = "/content/drive/MyDrive/ADSDB24"
-temporal_landing = os.path.join(base_dir,  "landing_zone/temporal")
-persistent_landing = os.path.join(base_dir, "landing_zone/persistent")
-dataset_folder = "datasets_specific"
-
-"""DuckDB"""
-duckdb_folder = "duckdb_database"
-duckdb_formatted = os.path.join(duckdb_folder, "formatted_zone.db")
-duckdb_trusted = os.path.join(duckdb_folder, "trusted_zone.db")
-duckdb_exploitation = os.path.join(duckdb_folder, "exploitation_zone.db")
-duckdb_sandbox = os.path.join(duckdb_folder, "sandbox_zone.db")
-
-"""Metadata"""
-metadata_folder = "metadata"
-formatted_metadata = "formatted_metadata.json"
-alz_metadata_fname = "alzheimer_metadata.json"
-chr_metadata_fname = "chronic_disease_indicators_metadata.json"
-analytical_sandbox_metadata = "analytical_sandbox_metadata.json"
-
-data_abbrev = ["alz", "chr"]
+from util import *
 
 """### Load train and test data"""
-
-con_sb = duckdb.connect(os.path.join(base_dir, duckdb_sandbox))
-tables = con_sb.execute("SHOW TABLES").fetchall()
-for table in tables:
-  print(table[0])
-con_sb.close()
 
 con_sb = duckdb.connect(os.path.join(base_dir, duckdb_sandbox))
 train = con_sb.execute("SELECT * FROM train_data").fetchdf()
 test = con_sb.execute("SELECT * FROM test_data").fetchdf()
 con_sb.close()
 
-print(train.shape)
-print(test.shape)
-
 """### Split data into predictors and target"""
 
 # train
 trainY = train["QTarget"]
 trainX = train.drop(["QTarget"], axis=1)
-print(trainX.shape)
-print(trainY.shape)
+
 # test
 testY = test["QTarget"]
 testX = test.drop(["QTarget"], axis=1)
-print(testX.shape)
-print(testY.shape)
-
-print(trainX.isnull().sum())
-print(trainY.isnull().sum())
-
-print(trainY)
 
 """### Train extra-trees clasifier
 
@@ -127,7 +89,6 @@ extress_5CV = extress_cv.fit(trainX, trainY)
 print(timedelta(seconds=(time() - init_time)))
 
 best_params = extress_5CV.best_params_
-best_params
 
 models_dir = "models"
 with open(os.path.join(base_dir, models_dir, "ExtraTrees_bestparams.txt"), "w") as f:
@@ -139,21 +100,11 @@ scoring_cols = [
 ]
 
 """### Top 5 parameter combinations ordered by mse and r2"""
-
 pd.DataFrame(extress_5CV.cv_results_).sort_values(by='mean_test_mse', ascending=False)[scoring_cols].head()
-
 results = extress_cv.cv_results_
-print(pd.DataFrame(results))
 
 """# Estimation"""
-
 y_pred = extress_5CV.predict(testX)
-print(type(y_pred))
-print(type(testY))
-
-# results_df = compute_metrics(y_val, y_pred, labels, "ExtrTrees-best", results_df)
-# results_df.sort_values(by='F1_Avg', ascending=False,inplace=True)
-# results_df
 
 mse_test = mean_squared_error(testY, y_pred)
 r2_test = r2_score(testY, y_pred)
@@ -162,6 +113,4 @@ print(f"MSE on test set: {mse_test}")
 print(f"R2 on test set: {r2_test}")
 
 """This is the standard deviation of the target variable"""
-
 all_data = pd.concat([train, test])
-all_data["QTarget"].std()

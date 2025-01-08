@@ -30,7 +30,7 @@ def formatted_loader():
     return ret_str
 
 def trusted_loader():
-    load_to_trusted()
+    load_trusted()
     con = duckdb.connect(duckdb_trusted)
     tables = con.execute("SHOW TABLES").fetchall()
     ret_str = "Tables in the trusted database:\n"
@@ -50,9 +50,24 @@ def exploitation_loader():
     return ret_str
 
 def sandbox():
-    exp_to_sandbox()
-    data_preparation()
+    load_sandbox()
+    con = duckdb.connect(duckdb_sandbox)
+    tables = con.execute("SHOW TABLES").fetchall()
+    ret_san = "Tables in the analytical sandbox:\n"
+    for table in tables:
+        ret_san += table[0] + "\n"
+    con.close()
+    return ret_san
 
+def feature_enginering():
+    data_preparation_execute()
+    con = duckdb.connect(duckdb_sandbox)
+    tables = con.execute("SHOW TABLES").fetchall()
+    ret_fe = "Tables after feature engineering:\n"
+    for table in tables:
+        ret_fe += table[0] + "\n"
+    con.close()
+    return ret_fe
 
 def model_training_loader():
     model_training()
@@ -75,7 +90,7 @@ if __name__ == "__main__":
     con.close()
 
     """Load to trusted"""
-    load_to_trusted()
+    load_trusted()
     """Check tables that are currently in the database"""
     con = duckdb.connect(duckdb_trusted)
     tables = con.execute("SHOW TABLES").fetchall()
@@ -94,11 +109,20 @@ if __name__ == "__main__":
         print(table[0])
 
     """Load to analytical sandbox"""
-    exp_to_sandbox()
+    load_sandbox()
     """Check tables that are currently in the database"""
     con = duckdb.connect(duckdb_sandbox)
     tables = con.execute("SHOW TABLES").fetchall()
     print("Tables in the sandbox database:")
+    for table in tables:
+        print(table[0])
+
+    """Feature engineering zone"""
+    data_preparation_execute()
+    """Check tables that are currently in the database"""
+    con = duckdb.connect(duckdb_sandbox)
+    tables = con.execute("SHOW TABLES").fetchall()
+    print("Tables after feature engineering:")
     for table in tables:
         print(table[0])
     
