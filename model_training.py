@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ Model Training """
 
 import pandas as pd
@@ -27,22 +26,25 @@ from sklearn.metrics import make_scorer, mean_squared_error, r2_score
 
 from util import *
 
-"""### Load train and test data"""
+# Function to connect to the sandbox database and load data
+def load_data():
+    con_sb = duckdb.connect(os.path.join(base_dir, duckdb_sandbox))
+    train = con_sb.execute("SELECT * FROM train_data").fetchdf()
+    test = con_sb.execute("SELECT * FROM test_data").fetchdf()
+    con_sb.close()
+    return train, test
 
-con_sb = duckdb.connect(os.path.join(base_dir, duckdb_sandbox))
-train = con_sb.execute("SELECT * FROM train_data").fetchdf()
-test = con_sb.execute("SELECT * FROM test_data").fetchdf()
-con_sb.close()
+# Split data into predictors and target
+def split_data(train, test):
+    # train
+    trainY = train["QTarget"]
+    trainX = train.drop(["QTarget"], axis=1)
 
-"""### Split data into predictors and target"""
+    # test
+    testY = test["QTarget"]
+    testX = test.drop(["QTarget"], axis=1)
 
-# train
-trainY = train["QTarget"]
-trainX = train.drop(["QTarget"], axis=1)
-
-# test
-testY = test["QTarget"]
-testX = test.drop(["QTarget"], axis=1)
+    return trainX, trainY, testX, testY
 
 """### Train extra-trees clasifier
 
@@ -61,56 +63,81 @@ Let's say we have a min_samples_split and the resulting split results in a leaf 
 7.   bootstrap: *Whether bootstrap samples are used when building trees. If False, the whole dataset is used to build each tree.*
 The default behaviour of ExtraTrees is to not boostrap and that is one of its main differences from RandomForest. In an ExtraTreesRegressor, we are drawing observations without replacement, so we will not have repetition of observations like in random forest. Setting it to True, makes its behavior more similar to RandomForest
 """
+def train_extra_trees(trainX, trainY):
+    extress = ExtraTreesRegressor(random_state=17)
 
-extress = ExtraTreesRegressor(random_state=17)
+    scoring_dict = {
+        'mse': make_scorer(mean_squared_error, greater_is_better=False),
+        'r2': 'r2',
+    }
 
-scoring_dict = {
-    'mse': make_scorer(mean_squared_error, greater_is_better=False),
-    'r2': 'r2',
-}
+    init_time = time()
+    extress_cv = GridSearchCV(estimator=extress,
+                    scoring=scoring_dict,
+                    param_grid={
+                        'n_estimators': [100, 500, 1000],
+                        'criterion': ['squared_error'],
+                        'max_depth': [2,4,6] + [None],
+                        'min_samples_split': [2,4,6,8,10,12],
+                        'min_samples_leaf': [1, 3, 5],
+                        #  'max_features': ['sqrt', 'log2', None],
+                    },
+                    cv=5,
+                    return_train_score=False,
+                    refit='mse',
+                    error_score='raise',
+                    n_jobs=-1)
+    extress_5CV = extress_cv.fit(trainX, trainY)
+    print(timedelta(seconds=(time() - init_time)))
 
-init_time = time()
-extress_cv = GridSearchCV(estimator=extress,
-                   scoring=scoring_dict,
-                   param_grid={
-                       'n_estimators': [100, 500, 1000],
-                       'criterion': ['squared_error'],
-                       'max_depth': [2,4,6] + [None],
-                       'min_samples_split': [2,4,6,8,10,12],
-                       'min_samples_leaf': [1, 3, 5],
-                      #  'max_features': ['sqrt', 'log2', None],
-                   },
-                   cv=5,
-                   return_train_score=False,
-                   refit='mse',
-                   error_score='raise',
-                   n_jobs=-1)
-extress_5CV = extress_cv.fit(trainX, trainY)
-print(timedelta(seconds=(time() - init_time)))
+    return extress_5CV
 
-best_params = extress_5CV.best_params_
 
-models_dir = "models"
-with open(os.path.join(base_dir, models_dir, "ExtraTrees_bestparams.txt"), "w") as f:
-  f.write(json.dumps(best_params))
-dump(extress_5CV, os.path.join(base_dir, models_dir, "ExtraTrees_best.joblib"))
+# Function to save the best model and its parameters
+def save_model_and_params(model, models_dir="models"):
+    best_params = model.best_params_
 
-scoring_cols = [
-    'param_n_estimators', 'param_criterion', 'param_max_depth', 'param_min_samples_split', 'param_min_samples_leaf', 'mean_test_mse', 'mean_test_r2'
-]
+    with open(os.path.join(base_dir, models_dir, "ExtraTrees_bestparams.txt"), "w") as f:
+        f.write(json.dumps(best_params))
+    dump(model, os.path.join(base_dir, models_dir, "ExtraTrees_best.joblib"))
 
-"""### Top 5 parameter combinations ordered by mse and r2"""
-pd.DataFrame(extress_5CV.cv_results_).sort_values(by='mean_test_mse', ascending=False)[scoring_cols].head()
-results = extress_cv.cv_results_
+    return model
 
-"""# Estimation"""
-y_pred = extress_5CV.predict(testX)
+# Top 5 parameter combinations ordered by mse and r2
+def display_top_parameters(model, scoring_cols):
+    pd.DataFrame(model.cv_results_).sort_values(by='mean_test_mse', ascending=False)[scoring_cols].head()
+    results = model.cv_results_
+    return results
 
-mse_test = mean_squared_error(testY, y_pred)
-r2_test = r2_score(testY, y_pred)
+# Evaluation of the model
+def evaluate_model(model, testX, testY):
+    y_pred = model.predict(testX)
 
-print(f"MSE on test set: {mse_test}")
-print(f"R2 on test set: {r2_test}")
+    mse_test = mean_squared_error(testY, y_pred)
+    r2_test = r2_score(testY, y_pred)
+
+    print(f"MSE on test set: {mse_test}")
+    print(f"R2 on test set: {r2_test}")
+
+    return mse_test, r2_test
 
 """This is the standard deviation of the target variable"""
 all_data = pd.concat([train, test])
+
+def model_training_execute():
+    train, test = load_data()
+    trainX, trainY, testX, testY = split_data(train, test)
+
+    model = train_extra_trees(trainX, trainY)
+
+    scoring_cols = [
+        'param_n_estimators', 'param_criterion', 'param_max_depth', 'param_min_samples_split', 'param_min_samples_leaf', 'mean_test_mse', 'mean_test_r2'
+    ]
+
+    models_dir = "models"
+    model, scoring_cols = save_model_and_params(model, models_dir)
+
+    top_params_result = display_top_parameters(model, scoring_cols)
+
+    mse_test, r2_test = evaluate_model(model, testX, testY)
+    return mse_test, r2_test

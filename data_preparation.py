@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"""data preparation"""
+"""Data Preparation"""
 
 import pandas as pd
 import numpy as np
@@ -12,8 +11,7 @@ import os
 
 from util import *
 
-""" Data Preparation """
-
+# Categorical variables and one-hot encoding
 def prep_categorical(analytical_df):
   analytical_df = analytical_df.drop(["StratificationCategory"], axis=1)
   analytical_df = analytical_df.reset_index()
@@ -29,10 +27,9 @@ def prep_categorical(analytical_df):
   analytical_df = analytical_df.drop([col], axis=1)
   return analytical_df
 
-
+# Missing values
 def prep_missing(analytical_df):
   counts = (analytical_df == -1).sum()
-  counts_gr0 = counts[counts > 100]
 
   # Remove columns with more than 20 missing values
   columns_to_drop = counts > 20

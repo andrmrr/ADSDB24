@@ -10,6 +10,8 @@ from exploitationzone import *
 from model_training import *
 from sandbox import *
 from data_preparation import *
+from feature_engineering import *
+from model_training import *
 
 def data_ingester():
     n = ingest_to_temporal()
@@ -49,7 +51,7 @@ def exploitation_loader():
     con.close()
     return ret_str
 
-def sandbox():
+def sandbox_loader():
     load_sandbox()
     con = duckdb.connect(duckdb_sandbox)
     tables = con.execute("SHOW TABLES").fetchall()
@@ -59,8 +61,8 @@ def sandbox():
     con.close()
     return ret_san
 
-def feature_enginering():
-    data_preparation_execute()
+def feature_enginering_loader():
+    feature_engineering_execute()
     con = duckdb.connect(duckdb_sandbox)
     tables = con.execute("SHOW TABLES").fetchall()
     ret_fe = "Tables after feature engineering:\n"
@@ -69,10 +71,22 @@ def feature_enginering():
     con.close()
     return ret_fe
 
+def data_preparation_loader():
+    data_preparation_execute()
+    con = duckdb.connect(duckdb_sandbox)
+    tables = con.execute("SHOW TABLES").fetchall()
+    ret_dp = "Tables after data preparation:\n"
+    for table in tables:
+        ret_dp += table[0] + "\n"
+    con.close()
+    return ret_dp
+
 def model_training_loader():
-    model_training()
-    mse = mse_test
-    r2 = r2_test
+    mse, r2 = model_training_execute()
+    
+    model_text = f"MSE on test set: {mse}" + "\n"
+    model_text += f"R2 on test set: {r2}"
+    return model_text
 
 if __name__ == "__main__":
     """ingest data into temporal landing"""
@@ -80,55 +94,24 @@ if __name__ == "__main__":
     load_to_persistent()
 
     """load into database in formatted zone"""
-    load_to_formatted()
-    """Check tables that are currently in the database"""
-    con = duckdb.connect(duckdb_formatted)
-    tables = con.execute("SHOW TABLES").fetchall()
-    print("Tables in the formatted database:")
-    for table in tables:
-        print(table[0])
-    con.close()
+    re_for = formatted_loader()
 
     """Load to trusted"""
-    load_trusted()
-    """Check tables that are currently in the database"""
-    con = duckdb.connect(duckdb_trusted)
-    tables = con.execute("SHOW TABLES").fetchall()
-    print("Tables in the trusted database:")
-    for table in tables:
-        print(table[0])
-    con.close()
+    re_tr = trusted_loader()
 
     """Load to exploitation"""
-    load_to_exploitation()
-    """Check tables that are currently in the database"""
-    con = duckdb.connect(duckdb_exploitation)
-    tables = con.execute("SHOW TABLES").fetchall()
-    print("Tables in the exploitation database:")
-    for table in tables:
-        print(table[0])
+    re_exp = exploitation_loader()
 
     """Load to analytical sandbox"""
-    load_sandbox()
-    """Check tables that are currently in the database"""
-    con = duckdb.connect(duckdb_sandbox)
-    tables = con.execute("SHOW TABLES").fetchall()
-    print("Tables in the sandbox database:")
-    for table in tables:
-        print(table[0])
+    re_san = sandbox_loader()
 
     """Feature engineering zone"""
-    data_preparation_execute()
-    """Check tables that are currently in the database"""
-    con = duckdb.connect(duckdb_sandbox)
-    tables = con.execute("SHOW TABLES").fetchall()
-    print("Tables after feature engineering:")
-    for table in tables:
-        print(table[0])
+    re_fe = feature_engineering_execute()
+
+    """Data preparation"""
+    re_dp = data_preparation_execute()
+
+    """Model training"""
+    model_text = model_training_execute()
     
-    """Check tables that are currently in the database"""
-    con = duckdb.connect(duckdb_exploitation)
-    tables = con.execute("SHOW TABLES").fetchall()
-    print("Tables in the exploitation database:")
-    for table in tables:
-        print(table[0])
+
