@@ -7,8 +7,12 @@ temporal_landing = os.path.join(base_dir,  "landing_zone", "temporal")
 persistent_landing = os.path.join(base_dir, "landing_zone", "persistent")
 
 dataset_folder = "datasets2017"
-dataset1_fname = "alz_texas_2017.csv"
-dataset2_fname = "chr_texas_2017.csv"
+dataset1_fname = "alz_2017.csv"
+dataset2_fname = "chr_2017.csv"
+
+# dataset_folder = "datasets2021"
+# dataset1_fname = "alz_2021.csv"
+# dataset2_fname = "chr_2021.csv"
 
 dataset1 = os.path.join(base_dir, dataset_folder, dataset1_fname)
 dataset2 = os.path.join(base_dir, dataset_folder, dataset2_fname)

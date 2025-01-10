@@ -4,7 +4,7 @@
 ---
 
 ## Data Organization
-- **datasets2017**: includes the 2017 version of the datasets
+- **datasets2017**: includes the 2017 and 2021 versions of the datasets
 - **datasets2021**: includes the 2021 version of the datasets
 - **landing_zone**: contains the temporal and persistent zones
 - **duckdb_database**: contains databases for the formatted zone, trusted zone, and exploitation zone
@@ -15,6 +15,7 @@
 ## Script Organization
 - **util.py**: contains functions, paths, and variables used by different scripts
 - **clear.py**: clears all files and databases
+- **initial_sampling.py**: samples the original dataset to a managable size
 - **ingestionlandingzone.py**: handles data ingestion and propagation from the temporal to the persistent landing zone
 - **formattedzone.py**: saves the datasets from the landing zone in DuckDB tables
 - **dataprofiling.py**: contains code for data profiling

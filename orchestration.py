@@ -98,15 +98,21 @@ if __name__ == "__main__":
 
     """load into database in formatted zone"""
     re_for = formatted_loader()
+    print(re_for)
 
     """Load to trusted"""
     re_tr = trusted_loader()
+    print(re_tr)
 
-    con_ex = duckdb.connect(os.path.join(base_dir, duckdb_trusted))
-    tables = con_ex.execute("SHOW TABLES").fetchall()
-    for table in tables:
-        print("Tru " + table[0])
-    con_ex.close()
+    """Load to exploitation"""
+    re_ex = exploitation_loader()
+    print(re_ex)
+
+    # con_ex = duckdb.connect(os.path.join(base_dir, duckdb_trusted))
+    # tables = con_ex.execute("SHOW TABLES").fetchall()
+    # for table in tables:
+    #     print("Tru " + table[0])
+    # con_ex.close()
 
     """Load to exploitation"""
     #re_exp = exploitation_loader()

@@ -62,11 +62,11 @@ def add_new_data(con_tru, ds, df):
   tables = [table[0] for table in tables]
   tru_name = dataset_names[os.path.basename(ds)]
   if tru_name not in tables:
-    con_tru.sql(f"CREATE TABLE {tru_name} AS SELECT * FROM {df}")
+    con_tru.sql(f"CREATE TABLE {tru_name} AS SELECT * FROM df")
   else:
     con_tru.sql(f"""
               INSERT INTO {tru_name}
-              SELECT * FROM {df}
+              SELECT * FROM df
           """)
   print(f"Data has been added to the {tru_name} table in the trusted zone.")
   return con_tru.execute(f"SELECT * FROM {tru_name}").fetchdf()
