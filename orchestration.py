@@ -108,36 +108,18 @@ if __name__ == "__main__":
     re_ex = exploitation_loader()
     print(re_ex)
 
-    # con_ex = duckdb.connect(os.path.join(base_dir, duckdb_trusted))
-    # tables = con_ex.execute("SHOW TABLES").fetchall()
-    # for table in tables:
-    #     print("Tru " + table[0])
-    # con_ex.close()
+    # Second part
+    #############
 
-    """Load to exploitation"""
-    #re_exp = exploitation_loader()
-
-    # con_ex = duckdb.connect(os.path.join(base_dir, duckdb_exploitation))
-    # tables = con_ex.execute("SHOW TABLES").fetchall()
-    # for table in tables:
-    #     print("Exp " + table[0])
-    # con_ex.close()
-
-    """Load to analytical sandbox"""
+    # """Load to analytical sandbox"""
     # re_san = sandbox_loader()
     # print(re_san)
 
-    # con_sb = duckdb.connect(os.path.join(base_dir, duckdb_sandbox))
-    # tables1 = con_sb.execute("SHOW TABLES").fetchall()
-    # for table in tables1:
-    #     print("Sandbox " + table[0])
-    # con_sb.close()
+    # """Feature engineering zone"""
+    # re_fe = feature_engineering_execute()
 
-    """Feature engineering zone"""
-    #re_fe = feature_engineering_execute()
-
-    """Data preparation"""
-    #re_dp = data_preparation_execute()
+    # """Data preparation"""
+    # re_dp = data_preparation_execute()
 
     """Model training"""
     #model_text = model_training_execute()

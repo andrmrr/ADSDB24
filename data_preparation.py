@@ -20,8 +20,10 @@ def prep_categorical(analytical_df):
   categorical_cols = analytical_df.select_dtypes(include=['object']).columns
   categorical_df = analytical_df[categorical_cols]
   for col in categorical_cols:
+    # take a list of possible values for a list feature
     df_expanded = categorical_df[categorical_df[col].notna()]
     cat_features = df_expanded[col].unique()
+    print(cat_features)
   for feat in cat_features:
       analytical_df[feat] = df_expanded[col].apply(lambda x: 1 if x == feat else 0)
   analytical_df = analytical_df.drop([col], axis=1)
@@ -29,9 +31,11 @@ def prep_categorical(analytical_df):
 
 # Missing values
 def prep_missing(analytical_df):
-  counts = (analytical_df == -1).sum()
+  analytical_df = analytical_df[analytical_df["QTarget"] != -1]
+  print(analytical_df.shape)
 
   # Remove columns with more than 20 missing values
+  counts = (analytical_df == -1).sum()
   columns_to_drop = counts > 20
   analytical_df = analytical_df.loc[:, ~columns_to_drop]
   analytical_df = analytical_df.replace(-1, np.nan)
@@ -55,6 +59,8 @@ def prep_missing_knn(train, test):
   train_imputed.to_csv(os.path.join(base_dir, "train_preprocessed.csv"))
   test_imputed.to_csv(os.path.join(base_dir, "test_preprocessed.csv"))
 
+  return train_imputed, test_imputed
+
 
 """ Main """
 def data_preparation_execute():
@@ -62,9 +68,14 @@ def data_preparation_execute():
   analytical_df = con_sb.execute("SELECT * FROM combined_analytical_table").fetchdf()
   con_sb.close()
 
+  print(analytical_df.shape)
   analytical_df = prep_categorical(analytical_df)
+  print(analytical_df.shape)
   analytical_df = prep_missing(analytical_df)
+  print(analytical_df.shape)
 
   train, test = train_test_split(analytical_df, test_size=0.1, random_state=17)
-  analytical_df = prep_missing_knn(train, test)
+  train, test = prep_missing_knn(train, test)
+  print(train.shape)
+  print(test.shape)
 

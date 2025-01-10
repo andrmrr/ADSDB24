@@ -82,19 +82,23 @@ def feature_engineering_execute():
         json.dump({"questions": {"QTarget" : target_df.iloc[0]["Question"]}}, f)
     target_df = target_df.drop(["Question"], axis=1)
 
+    print("Target loaded")
     # Combine the tables with the target question
     tables = con_sb.execute("SHOW TABLES").fetchall()
     question_cnt = 1
     for table in tables:
-        df = con_sb.execute(f"SELECT * FROM {table[0]}").fetchdf()
-        df = set_float_precision(df, ["Latitude", "Longitude"])
-        df = reconcile_stratificators(df)
-        questions_df_dict = dict(tuple(df.groupby("Question")))
-        for question_df in questions_df_dict.items():
-            target_df = combine_with_target(target_df, question_df, question_cnt)
-            question_cnt += 1
-        # remove the table after it has been combined with the target
-        con_sb.execute(f"DROP TABLE IF EXISTS {table[0]}")
+      print(f"{target_df.shape}")
+      if table[0] != target_table_name:
+            df = con_sb.execute(f"SELECT * FROM {table[0]}").fetchdf()
+            df = set_float_precision(df, ["Latitude", "Longitude"])
+            df = reconcile_stratificators(df)
+            questions_df_dict = dict(tuple(df.groupby("Question")))
+            for question, question_df in questions_df_dict.items():
+                  target_df = combine_with_target(target_df, question_df, question_cnt)
+                  question_cnt += 1
+      # remove the table after it has been combined with the target
+      con_sb.execute(f"DROP TABLE IF EXISTS {table[0]}")
+      print(f"Table successfully {table[0]} combined")
 
     # Save final combined table
     final_table_name = "combined_analytical_table"

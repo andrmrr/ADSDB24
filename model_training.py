@@ -32,6 +32,8 @@ def load_data():
     train = con_sb.execute("SELECT * FROM train_data").fetchdf()
     test = con_sb.execute("SELECT * FROM test_data").fetchdf()
     con_sb.close()
+    print(train.shape)
+    print(test.shape)
     return train, test
 
 # Split data into predictors and target

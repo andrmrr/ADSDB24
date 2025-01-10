@@ -23,6 +23,9 @@
 - **chr_preprocessing.py**: contains functions for preparation of Chronic Disease Indicators datasets
 - **trustedzone.py**: handles data quality processes and integration of different versions of datasets from the formatted zone to the trusted zone. It uses `dataprofiling.py`, `alz_preprocessing.py`, and `chr_preprocessing.py` for data quality processes
 - **exploitation.py**: does data reconciliation and combines the tables from the trusted zone into the exploitation zone based on semantic context 
+- **sandbox.py**: creates a new table for the data analysis backbone from the subset of the exploitation zone tables
+- **feature_engineering.py**: combines and processes the sandbox tables to create features for the final dataframe
+- **data_preparation.py**: handles missing values, categorical variable encoding and train-test split
 - **orchestration.py**: connects all the zones. It can be executed for the full pipeline. It also provides functions that are called from the GUI
 - **gui.py**: contains the code for the user interface
 
