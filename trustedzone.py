@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """TrustedZone"""
 import pandas as pd
 import numpy as np
@@ -11,12 +10,8 @@ import os
 import json
 
 from util import *
-from alz_preprocessing import *
-from chr_preprocessing import *
 
-"""
-Integrate incoming tables into one"""
-
+# Integrate incoming tables into one
 def integrate_new_tables(con_for, ds):
   # get all tables corresponding to each dataset
   new_tables = []
@@ -61,18 +56,17 @@ def integrate_new_tables(con_for, ds):
 
   return df
 
-"""Combine integrated and preprocessed tables to the existing table in the trusted zone"""
-
+# Combine integrated and preprocessed tables to the existing table in the trusted zone
 def add_new_data(con_tru, ds, df):
   tables = con_tru.execute("SHOW TABLES").fetchall()
   tables = [table[0] for table in tables]
   tru_name = dataset_names[os.path.basename(ds)]
   if tru_name not in tables:
-    con_tru.sql(f"CREATE TABLE {tru_name} AS SELECT * FROM df")
+    con_tru.sql(f"CREATE TABLE {tru_name} AS SELECT * FROM {df}")
   else:
     con_tru.sql(f"""
               INSERT INTO {tru_name}
-              SELECT * FROM df
+              SELECT * FROM {df}
           """)
   print(f"Data has been added to the {tru_name} table in the trusted zone.")
   return con_tru.execute(f"SELECT * FROM {tru_name}").fetchdf()
@@ -82,28 +76,28 @@ def add_new_data(con_tru, ds, df):
 Profiling
 """
 
-def profiling(df, show_plots):
-  # print(df[:4])
-  print(df.shape)
-  print(df.info())
-  print(df.describe())
-  print(df.describe(include='object'))
+# def profiling(df, show_plots):
+#   # print(df[:4])
+#   print(df.shape)
+#   print(df.info())
+#   print(df.describe())
+#   print(df.describe(include='object'))
 
-  if show_plots:
-    # plot the counts of categorical features
-    categorical_features = df.select_dtypes(include=["object", "category"]).columns
-    for col in categorical_features:
-      sns.displot(df, x=col, kde=True)
-      plt.show()
+#   if show_plots:
+#     # plot the counts of categorical features
+#     categorical_features = df.select_dtypes(include=["object", "category"]).columns
+#     for col in categorical_features:
+#       sns.displot(df, x=col, kde=True)
+#       plt.show()
 
-    # plot the distributions of numerical features
-    numerical_features = df.select_dtypes(include="number").columns
-    for col in numerical_features:
-        sns.histplot(df[col], kde=True)
-        plt.title(f'Distribution of {col}')
-        plt.xlabel(col)
-        plt.ylabel('Frequency')
-        plt.show()
+#     # plot the distributions of numerical features
+#     numerical_features = df.select_dtypes(include="number").columns
+#     for col in numerical_features:
+#         sns.histplot(df[col], kde=True)
+#         plt.title(f'Distribution of {col}')
+#         plt.xlabel(col)
+#         plt.ylabel('Frequency')
+#         plt.show()
 
 """## Alzheimer"""
 
@@ -176,7 +170,7 @@ def alz_preprocess(alz):
 
   # Handle location
   # There are 4 location-based features that reference the same thing. We keep LocationDesc (state name) and Geolocation as latitude and longitude
-  alz_modified.drop(["LocationAbbr", "LocationID"], axis=1, inplace=True)
+  alz_modified.drop(["LocationAbbr", "LocationID"], axis=1, inplace=True, errors="ignore")
   alz_modified["Longitude"] = alz_modified["Geolocation"].str.extract(r"^POINT \((-?\d+\.\d+) -?\d+\.\d+\)$")
   alz_modified["Latitude"] = alz_modified["Geolocation"].str.extract(r"^POINT \(-?\d+\.\d+ (-?\d+\.\d+)\)$")
   alz_modified["Longitude"] = alz_modified["Longitude"].astype("float64")
@@ -188,10 +182,6 @@ def alz_preprocess(alz):
   return alz_modified
 
 """## Chronic disease indicators"""
-
-con_for = duckdb.connect(os.path.join(base_dir, duckdb_formatted))
-chr = integrate_new_tables(con_for, dataset2)
-con_for.close()
 
 def chr_preprocess(chr):
     # profiling(chr, True)
@@ -284,7 +274,7 @@ def chr_preprocess(chr):
         json.dump(chr_metadata, f, cls=NpEncoder)
 
     # There are 4 location-based features that reference the same thing. We keep LocationDesc (state name) and Geolocation as latitude and longitude
-    chr_modified.drop(["LocationAbbr", "LocationID"], axis=1, inplace=True)
+    chr_modified.drop(["LocationAbbr", "LocationID"], axis=1, inplace=True, errors="ignore")
     chr_modified["Longitude"] = chr_modified["GeoLocation"].str.extract(r"^POINT \((-?\d+\.\d+) -?\d+\.\d+\)$")
     chr_modified["Latitude"] = chr_modified["GeoLocation"].str.extract(r"^POINT \(-?\d+\.\d+ (-?\d+\.\d+)\)$")
     chr_modified["Longitude"] = chr_modified["Longitude"].astype("float64")
@@ -321,10 +311,11 @@ def preprocess(ds, df):
 """Main for Trusted Zone"""
 
 def load_trusted():
-  con_for = duckdb.connect(os.path.join(base_dir, duckdb_formatted))
-  con_tru = duckdb.connect(os.path.join(base_dir, duckdb_trusted))
+  con_for = duckdb.connect(duckdb_formatted)
+  con_tru = duckdb.connect(duckdb_trusted)
   for ds in datasets:
     df = integrate_new_tables(con_for, ds)
+    print(df)
     if df is None:
       continue
     df = preprocess(ds, df)
@@ -340,12 +331,3 @@ def load_trusted():
   for table in tables:
     print(table[0])
   con_tru.close()
-
-"""## For testing"""
-
-con_tru = duckdb.connect(os.path.join(base_dir, duckdb_trusted))
-tables = con_tru.execute("SHOW TABLES").fetchall()
-for table in tables:
-  df = con_tru.execute(f"SELECT * FROM {table[0]}").fetchdf()
-  print(df.columns)
-con_tru.close()

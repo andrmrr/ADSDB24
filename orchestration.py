@@ -82,15 +82,18 @@ def data_preparation_loader():
     return ret_dp
 
 def model_training_loader():
-    mse, r2 = model_training_execute()
+    mse, r2, prediction = model_training_execute()
     
     model_text = f"MSE on test set: {mse}" + "\n"
-    model_text += f"R2 on test set: {r2}"
+    model_text += f"R2 on test set: {r2}" + "\n"
+    model_text += f"Model predictions: " + "\n"
+    for i, prediction in enumerate(prediction):
+        model_text += f"Sample {i + 1}: {prediction}"
     return model_text
 
 if __name__ == "__main__":
     """ingest data into temporal landing"""
-    # ingest_to_temporal()
+    ingest_to_temporal()
     load_to_persistent()
 
     """load into database in formatted zone"""
@@ -99,19 +102,38 @@ if __name__ == "__main__":
     """Load to trusted"""
     re_tr = trusted_loader()
 
+    con_ex = duckdb.connect(os.path.join(base_dir, duckdb_trusted))
+    tables = con_ex.execute("SHOW TABLES").fetchall()
+    for table in tables:
+        print("Tru " + table[0])
+    con_ex.close()
+
     """Load to exploitation"""
-    re_exp = exploitation_loader()
+    #re_exp = exploitation_loader()
+
+    # con_ex = duckdb.connect(os.path.join(base_dir, duckdb_exploitation))
+    # tables = con_ex.execute("SHOW TABLES").fetchall()
+    # for table in tables:
+    #     print("Exp " + table[0])
+    # con_ex.close()
 
     """Load to analytical sandbox"""
-    re_san = sandbox_loader()
+    # re_san = sandbox_loader()
+    # print(re_san)
+
+    # con_sb = duckdb.connect(os.path.join(base_dir, duckdb_sandbox))
+    # tables1 = con_sb.execute("SHOW TABLES").fetchall()
+    # for table in tables1:
+    #     print("Sandbox " + table[0])
+    # con_sb.close()
 
     """Feature engineering zone"""
-    re_fe = feature_engineering_execute()
+    #re_fe = feature_engineering_execute()
 
     """Data preparation"""
-    re_dp = data_preparation_execute()
+    #re_dp = data_preparation_execute()
 
     """Model training"""
-    model_text = model_training_execute()
+    #model_text = model_training_execute()
     
 

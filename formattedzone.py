@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """FormattedZone"""
 
 import duckdb
@@ -37,7 +36,7 @@ def add_new_dataset(folder):
       new_tables_list = fmetadata["new_tables"]
     # print(fmetadata)
 
-  con = duckdb.connect(os.path.join(base_dir, duckdb_formatted))
+  con = duckdb.connect(duckdb_formatted)
   # Check if there's a new dataset
   new_datasets = get_latest_datasets(folder)
   if new_datasets:

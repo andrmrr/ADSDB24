@@ -45,6 +45,7 @@ alz_metadata_fname = "alzheimer_metadata.json"
 chr_metadata_fname = "chronic_disease_indicators_metadata.json"
 analytical_sandbox_metadata = "analytical_sandbox_metadata.json"
 
+data_abbrev = ["alz", "chr"]
 
 # custom JSON encoder used for persisting metadata as a JSON file
 class NpEncoder(json.JSONEncoder):

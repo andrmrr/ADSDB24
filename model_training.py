@@ -118,11 +118,10 @@ def evaluate_model(model, testX, testY):
 
     print(f"MSE on test set: {mse_test}")
     print(f"R2 on test set: {r2_test}")
+    for i, prediction in enumerate(y_pred):
+        print(f"Sample {i + 1}: {prediction}")
 
-    return mse_test, r2_test
-
-"""This is the standard deviation of the target variable"""
-all_data = pd.concat([train, test])
+    return mse_test, r2_test, y_pred
 
 def model_training_execute():
     train, test = load_data()
@@ -139,5 +138,9 @@ def model_training_execute():
 
     top_params_result = display_top_parameters(model, scoring_cols)
 
-    mse_test, r2_test = evaluate_model(model, testX, testY)
-    return mse_test, r2_test
+    mse_test, r2_test, predictions = evaluate_model(model, testX, testY)
+
+    """This is the standard deviation of the target variable"""
+    all_data = pd.concat([train, test])
+    
+    return mse_test, r2_test, predictions

@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 """ Analytical Sandbox """
 
 import pandas as pd
 import numpy as np
 import duckdb
-import json
 import os
 
 from util import *
@@ -33,7 +31,7 @@ def exp_to_sandbox(con_exp, con_sb):
 
     # print(command)
     df = con_exp.execute(command).fetchdf()
-    con_sb.execute(f"CREATE TABLE {table[0]} AS SELECT * FROM df")
+    con_sb.execute(f"CREATE TABLE {table[0]} AS SELECT * FROM {df}")
     print(f"Created table {table[0]} in the sandbox.")
 
 """ Main for analytical sandbox"""
